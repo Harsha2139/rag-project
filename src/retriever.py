@@ -9,9 +9,18 @@ from src.text_chunker import create_chunks
 from src.vector_store import VectorStore
 
 
-# Load embedding model once
+# =========================================================
+# LOAD EMBEDDING MODEL
+# =========================================================
+
 model = SentenceTransformer("all-MiniLM-L6-v2")
 
+DISTANCE_THRESHOLD = 1.0
+
+
+# =========================================================
+# BUILD KNOWLEDGE BASE
+# =========================================================
 
 def build_search_system(pdf_paths):
 
@@ -76,14 +85,25 @@ def build_search_system(pdf_paths):
     return store, metadata
 
 
-def retrieve(question, store, metadata, top_k=5):
+# =========================================================
+# MULTI-DOCUMENT RETRIEVAL
+# =========================================================
 
-    if not question.strip():
+def retrieve(
+    question,
+    store,
+    metadata,
+    top_k=5,
+    distance_threshold=DISTANCE_THRESHOLD
+):
+
+    if not question or not question.strip():
         return []
 
     if store is None or not metadata:
         return []
 
+    # Generate question embedding
     question_embedding = model.encode(
         [question],
         convert_to_numpy=True,
@@ -91,33 +111,119 @@ def retrieve(question, store, metadata, top_k=5):
         show_progress_bar=False
     )
 
-    results = store.search(
-        question_embedding[0],
-        top_k=top_k
+    query = np.asarray(
+        question_embedding,
+        dtype="float32"
     )
 
+    # Search the complete FAISS index
+    total_vectors = store.index.ntotal
+
+    if total_vectors == 0:
+        return []
+
+    distances, indices = store.index.search(
+        query,
+        total_vectors
+    )
+
+    # Maximum relevant chunks from each PDF
+    MAX_CHUNKS_PER_DOCUMENT = max(
+        1,
+        min(int(top_k), 5)
+    )
+
+    document_counts = {}
     relevant_results = []
 
-    # Initial squared L2 distance threshold.
-    # Lower distance means greater similarity.
-    DISTANCE_THRESHOLD = 1.0
+    # Process results from most relevant to least relevant
+    candidates = sorted(
+        zip(distances[0], indices[0]),
+        key=lambda item: item[0]
+    )
 
-    for result in results:
+    for distance, idx in candidates:
 
-        idx = result["index"]
-        distance = result["distance"]
-
-        if idx >= len(metadata):
+        if idx == -1 or idx >= len(metadata):
             continue
 
-        if distance > DISTANCE_THRESHOLD:
+        # Ignore weak matches
+        if distance > distance_threshold:
             continue
 
-        item = metadata[idx].copy()
+        item = metadata[idx]
 
-        item["distance"] = distance
-        item["similarity"] = 1 - (distance / 2)
+        filename = item.get(
+            "file",
+            "Unknown PDF"
+        )
 
-        relevant_results.append(item)
+        # Balance retrieval across documents
+        current_count = document_counts.get(
+            filename,
+            0
+        )
+
+        if current_count >= MAX_CHUNKS_PER_DOCUMENT:
+            continue
+
+        result = item.copy()
+
+        result["distance"] = float(distance)
+        result["similarity"] = float(
+            1 - (distance / 2)
+        )
+
+        relevant_results.append(result)
+
+        document_counts[filename] = current_count + 1
 
     return relevant_results
+
+
+# =========================================================
+# GET AVAILABLE DOCUMENTS
+# =========================================================
+
+def get_document_names(metadata):
+
+    return sorted(set(
+        item.get("file", "Unknown PDF")
+        for item in metadata
+    ))
+
+
+# =========================================================
+# GET ALL CONTENT FROM ONE DOCUMENT
+# =========================================================
+
+def get_document_chunks(metadata, filename):
+
+    return [
+        item
+        for item in metadata
+        if item.get("file") == filename
+    ]
+
+
+# =========================================================
+# GET ALL INDEXED DOCUMENT CONTENT
+# =========================================================
+
+def get_all_document_chunks(metadata):
+
+    grouped_documents = {}
+
+    for item in metadata:
+
+        filename = item.get(
+            "file",
+            "Unknown PDF"
+        )
+
+        if filename not in grouped_documents:
+            grouped_documents[filename] = []
+
+        grouped_documents[filename].append(item)
+
+    return grouped_documents
