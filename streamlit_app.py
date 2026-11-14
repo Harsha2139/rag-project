@@ -375,6 +375,243 @@ hr {
     border-radius: 10px;
 }
 
+
+/* =========================================================
+   MOBILE RESPONSIVE LAYOUT
+   Desktop styling above remains unchanged.
+========================================================= */
+
+@media screen and (max-width: 768px) {
+
+    .block-container {
+        padding: 0.8rem 0.75rem 2rem 0.75rem !important;
+        max-width: 100% !important;
+    }
+
+    [data-testid="stHorizontalBlock"] {
+        flex-wrap: wrap !important;
+        gap: 0.75rem !important;
+    }
+
+    [data-testid="stHorizontalBlock"] > [data-testid="column"] {
+        flex: 1 1 100% !important;
+        width: 100% !important;
+        min-width: 100% !important;
+    }
+
+    h1 {
+        font-size: 1.55rem !important;
+        line-height: 1.25 !important;
+        overflow-wrap: anywhere !important;
+    }
+
+    h2 {
+        font-size: 1.35rem !important;
+        line-height: 1.3 !important;
+    }
+
+    h3 {
+        font-size: 1.15rem !important;
+        line-height: 1.3 !important;
+    }
+
+    p, label, li {
+        overflow-wrap: anywhere !important;
+    }
+
+    .greeting-board {
+        padding: 16px !important;
+        margin-bottom: 14px !important;
+        border-radius: 13px !important;
+    }
+
+    .greeting-label {
+        font-size: 9px !important;
+        letter-spacing: 1.5px !important;
+        line-height: 1.5 !important;
+    }
+
+    .greeting-title {
+        font-size: 21px !important;
+        line-height: 1.25 !important;
+        overflow-wrap: anywhere !important;
+    }
+
+    .greeting-description {
+        font-size: 12px !important;
+        line-height: 1.5 !important;
+    }
+
+    .section-card {
+        padding: 13px !important;
+        margin-bottom: 12px !important;
+        border-radius: 11px !important;
+    }
+
+    .section-heading {
+        font-size: 16px !important;
+        line-height: 1.35 !important;
+        overflow-wrap: anywhere !important;
+    }
+
+    .stat-card {
+        min-height: 75px !important;
+        padding: 12px 8px !important;
+    }
+
+    .stat-value {
+        font-size: 21px !important;
+        overflow-wrap: anywhere !important;
+    }
+
+    .stat-label {
+        font-size: 10px !important;
+    }
+
+    .stTextInput input,
+    .stTextArea textarea,
+    [data-testid="stFileUploader"] {
+        width: 100% !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+    }
+
+    .stTextInput input,
+    .stTextArea textarea,
+    input {
+        font-size: 16px !important;
+    }
+
+    [data-testid="stFileUploader"] {
+        padding: 7px !important;
+    }
+
+    [data-testid="stFileUploaderDropzone"] {
+        padding: 10px !important;
+    }
+
+    .stButton > button,
+    .stFormSubmitButton > button {
+        min-height: 43px !important;
+        height: auto !important;
+        width: 100% !important;
+        padding: 9px 10px !important;
+        white-space: normal !important;
+        overflow-wrap: anywhere !important;
+        line-height: 1.35 !important;
+        font-size: 13px !important;
+    }
+
+    .st-key-tool_pdf_chunks button,
+    .st-key-tool_ai_assistant button,
+    .st-key-tool_questions_answers button,
+    .st-key-tool_semantic_search button {
+        min-height: 46px !important;
+        font-size: 13px !important;
+    }
+
+    .st-key-previous_arrow button,
+    .st-key-next_arrow button {
+        min-height: 42px !important;
+        font-size: 20px !important;
+    }
+
+    [data-testid="stChatMessage"] {
+        padding: 10px !important;
+        gap: 8px !important;
+        border-radius: 10px !important;
+    }
+
+    [data-testid="stChatInput"] {
+        padding-bottom: 0.5rem !important;
+    }
+
+    [data-testid="stExpander"] {
+        width: 100% !important;
+        max-width: 100% !important;
+    }
+
+    [data-testid="stExpander"] details summary {
+        font-size: 13px !important;
+        line-height: 1.4 !important;
+    }
+
+    .stMarkdown,
+    [data-testid="stMarkdownContainer"],
+    code,
+    pre {
+        max-width: 100% !important;
+        overflow-wrap: anywhere !important;
+        word-break: break-word !important;
+    }
+
+    pre {
+        overflow-x: auto !important;
+        white-space: pre-wrap !important;
+    }
+
+    [data-testid="stDataFrame"],
+    [data-testid="stTable"] {
+        max-width: 100% !important;
+        overflow-x: auto !important;
+    }
+
+    section[data-testid="stSidebar"] {
+        min-width: min(85vw, 320px) !important;
+        max-width: 85vw !important;
+    }
+
+    [data-testid="stVerticalBlock"] {
+        gap: 0.65rem !important;
+    }
+
+    img, iframe, video {
+        max-width: 100% !important;
+    }
+}
+
+@media screen and (max-width: 480px) {
+
+    .block-container {
+        padding: 0.65rem 0.55rem 1.5rem 0.55rem !important;
+    }
+
+    .brand-title {
+        font-size: 23px !important;
+        letter-spacing: 2px !important;
+    }
+
+    .brand-box {
+        padding: 15px 8px !important;
+    }
+
+    .greeting-title {
+        font-size: 19px !important;
+    }
+
+    .section-heading {
+        font-size: 15px !important;
+    }
+
+    .stat-value {
+        font-size: 19px !important;
+    }
+
+    .stButton > button,
+    .stFormSubmitButton > button {
+        min-height: 45px !important;
+        font-size: 12px !important;
+    }
+}
+
+/* Respect phones/tablets in landscape orientation */
+@media screen and (min-width: 769px) and (max-width: 1024px) {
+    .block-container {
+        padding-left: 1.2rem !important;
+        padding-right: 1.2rem !important;
+    }
+}
+
 </style>
 """, unsafe_allow_html=True)
 
