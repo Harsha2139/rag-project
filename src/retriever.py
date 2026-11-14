@@ -1,3 +1,4 @@
+
 from pathlib import Path
 
 import numpy as np
@@ -8,23 +9,21 @@ from src.text_chunker import create_chunks
 from src.vector_store import VectorStore
 
 
-# Load the embedding model once
+# Load embedding model once
 model = SentenceTransformer("all-MiniLM-L6-v2")
 
 
 def build_search_system(pdf_paths):
-    """
-    Read multiple PDFs, split their text into chunks,
-    generate embeddings and store them in FAISS.
-    """
 
     all_chunks = []
     metadata = []
 
     for pdf_path in pdf_paths:
+
         pages = load_pdf(pdf_path)
 
         for page in pages:
+
             page_text = page.get("text", "").strip()
 
             if not page_text:
@@ -37,6 +36,10 @@ def build_search_system(pdf_paths):
             )
 
             for chunk in chunks:
+
+                if not chunk.strip():
+                    continue
+
                 all_chunks.append(chunk)
 
                 metadata.append({
@@ -50,47 +53,71 @@ def build_search_system(pdf_paths):
             "No readable text was found in the selected PDFs."
         )
 
+    # Generate normalized embeddings
     embeddings = model.encode(
         all_chunks,
         convert_to_numpy=True,
+        normalize_embeddings=True,
         show_progress_bar=False
     )
 
-    embeddings = np.asarray(embeddings, dtype="float32")
+    embeddings = np.asarray(
+        embeddings,
+        dtype="float32"
+    )
 
     store = VectorStore(embeddings.shape[1])
-    store.add_embeddings(embeddings, all_chunks)
+
+    store.add_embeddings(
+        embeddings,
+        all_chunks
+    )
 
     return store, metadata
 
 
 def retrieve(question, store, metadata, top_k=5):
-    """Find the most relevant chunks for a question."""
+
+    if not question.strip():
+        return []
 
     if store is None or not metadata:
         return []
 
     question_embedding = model.encode(
         [question],
-        convert_to_numpy=True
+        convert_to_numpy=True,
+        normalize_embeddings=True,
+        show_progress_bar=False
     )
 
-    query = np.asarray(question_embedding, dtype="float32")
-
-    number_of_results = min(top_k, store.index.ntotal)
-
-    if number_of_results == 0:
-        return []
-
-    distances, indices = store.index.search(
-        query,
-        number_of_results
+    results = store.search(
+        question_embedding[0],
+        top_k=top_k
     )
 
-    results = []
+    relevant_results = []
 
-    for idx in indices[0]:
-        if idx != -1 and idx < len(metadata):
-            results.append(metadata[idx])
+    # Initial squared L2 distance threshold.
+    # Lower distance means greater similarity.
+    DISTANCE_THRESHOLD = 1.0
 
-    return results
+    for result in results:
+
+        idx = result["index"]
+        distance = result["distance"]
+
+        if idx >= len(metadata):
+            continue
+
+        if distance > DISTANCE_THRESHOLD:
+            continue
+
+        item = metadata[idx].copy()
+
+        item["distance"] = distance
+        item["similarity"] = 1 - (distance / 2)
+
+        relevant_results.append(item)
+
+    return relevant_results
